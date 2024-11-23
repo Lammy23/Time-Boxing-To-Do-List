@@ -36,7 +36,7 @@ const CompletionRateDisplay = ({ rate }: { rate: number }) => {
   const strokeDashoffset = circumference - (rate / 100) * circumference;
 
   return (
-    <div className={`fixed right-8 top-1/3 w-48 h-48 ${colors.background} rounded-full shadow-lg flex items-center justify-center`}>
+    <div className={`fixed right-8 bottom-8 w-48 h-48 ${colors.background} rounded-full shadow-lg flex items-center justify-center`}>
       <div className="relative">
         {/* Background circle */}
         <svg className="w-40 h-40 -rotate-90">
