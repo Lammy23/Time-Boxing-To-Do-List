@@ -1,11 +1,11 @@
 // components/TaskHistoryPage.tsx
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Edit2, Save, X } from 'lucide-react';
-import { TaskHistory } from '../types';
-import { formatTime } from '../utils/formatTime';
+import { Edit2, Save, X, ArrowLeft } from "lucide-react";
+import { TaskHistory } from "../types";
+import { formatTime } from "../utils/formatTime";
 
 interface TaskHistoryPageProps {
   taskHistory: TaskHistory;
@@ -19,7 +19,7 @@ const TaskHistoryPage: React.FC<TaskHistoryPageProps> = ({
   onClose,
 }) => {
   const [editingTask, setEditingTask] = useState<string | null>(null);
-  const [newTaskName, setNewTaskName] = useState('');
+  const [newTaskName, setNewTaskName] = useState("");
 
   const handleEdit = (taskName: string) => {
     setEditingTask(taskName);
@@ -34,12 +34,12 @@ const TaskHistoryPage: React.FC<TaskHistoryPageProps> = ({
   };
 
   return (
-    <Card className="w-full max-w-2xl">
+    <Card className="w-full max-w-2xl mx-auto">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Task History</CardTitle>
         <Button variant="ghost" size="icon" onClick={onClose}>
-          <X className="h-4 w-4" />
+          <ArrowLeft className="h-4 w-4" />
         </Button>
+        <CardTitle>Task History</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -53,18 +53,15 @@ const TaskHistoryPage: React.FC<TaskHistoryPageProps> = ({
                       onChange={(e) => setNewTaskName(e.target.value)}
                       className="flex-1"
                     />
-                    <Button 
-                      size="icon"
-                      onClick={() => handleSave(taskName)}
-                    >
+                    <Button size="icon" onClick={() => handleSave(taskName)}>
                       <Save className="h-4 w-4" />
                     </Button>
                   </div>
                 ) : (
                   <>
                     <span className="font-medium">{taskName}</span>
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="icon"
                       onClick={() => handleEdit(taskName)}
                     >

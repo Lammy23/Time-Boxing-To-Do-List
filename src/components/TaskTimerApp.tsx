@@ -13,6 +13,7 @@ import CompleteTaskDialog from "@/components/CompleteTaskDialog";
 import CompletionRateDisplay from "@/components/CompletionRateDisplay";
 import TaskHistoryPage from "@/components/TaskHistoryPage";
 import { Task, TaskHistory, DailyStat } from "../types/index";
+import { formatDate, localTz } from "@/utils/formatDate";
 
 const TaskTimerApp: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -34,7 +35,10 @@ const TaskTimerApp: React.FC = () => {
     const loadedDailyStats = JSON.parse(
       localStorage.getItem("dailyStats") || "[]"
     );
-    const today = new Date().toISOString().split("T")[0];
+    // const today = new Date().toISOString().split("T")[0];
+
+    const today = formatDate(Date.now(), localTz);
+
     const loadedTasks = JSON.parse(localStorage.getItem("tasks") || "[]");
     const loadedScore = parseInt(localStorage.getItem("score") || "0");
 
@@ -63,7 +67,7 @@ const TaskTimerApp: React.FC = () => {
   // Check for day change and reset tasks
   useEffect(() => {
     const checkDate = () => {
-      const today = new Date().toISOString().split("T")[0];
+      const today = formatDate(Date.now(), localTz);
       const lastDate = localStorage.getItem("lastDate");
 
       if (lastDate !== today) {
@@ -170,7 +174,7 @@ const TaskTimerApp: React.FC = () => {
       status: "pending",
       active: false,
       startTime: null,
-      date: new Date().toISOString().split("T")[0],
+      date: formatDate(Date.now(), localTz),
     };
 
     setTasks((prev) => [...prev, newTask]);
@@ -276,7 +280,7 @@ const TaskTimerApp: React.FC = () => {
       status: "pending",
       active: false,
       startTime: null,
-      date: new Date().toISOString().split("T")[0],
+      date: formatDate(Date.now(), localTz),
       hasBeenRescheduled: false,
     };
 
@@ -293,7 +297,11 @@ const TaskTimerApp: React.FC = () => {
       setTasks((prevTasks) =>
         prevTasks.map((task) => {
           if (task.active && task.status === "pending") {
-            const newTimeRemaining = task.timeRemaining - 1;
+            const now = Date.now();
+            const startTime = task.startTime || now; // Add startTime if not present
+            const elapsedSeconds = Math.floor((now - startTime) / 1000);
+            const newTimeRemaining = task.timeLimit - elapsedSeconds;
+
             if (newTimeRemaining <= 0) {
               return {
                 ...task,
@@ -311,6 +319,29 @@ const TaskTimerApp: React.FC = () => {
 
     return () => clearInterval(interval);
   }, []);
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setTasks((prevTasks) =>
+  //       prevTasks.map((task) => {
+  //         if (task.active && task.status === "pending") {
+  //           const newTimeRemaining = task.timeRemaining - 1;
+  //           if (newTimeRemaining <= 0) {
+  //             return {
+  //               ...task,
+  //               timeRemaining: 0,
+  //               active: false,
+  //               status: "failed",
+  //             };
+  //           }
+  //           return { ...task, timeRemaining: newTimeRemaining };
+  //         }
+  //         return task;
+  //       })
+  //     );
+  //   }, 1000);
+
+  //   return () => clearInterval(interval);
+  // }, []);
 
   return (
     <>
