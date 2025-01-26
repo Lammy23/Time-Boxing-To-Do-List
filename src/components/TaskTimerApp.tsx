@@ -231,11 +231,11 @@ const TaskTimerApp: React.FC = () => {
           }));
 
           const isFirstCompletion = taskData.completionCount === 0;
-          const pointsEarned = calculatePoints(
+          const pointsEarned = success ? calculatePoints(
             completionTime,
             taskData.averageTime,
             isFirstCompletion
-          );
+          ) : 0;
 
           setScore((prev) => prev + pointsEarned);
 
