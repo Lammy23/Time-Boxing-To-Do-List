@@ -171,6 +171,7 @@ const TaskTimerApp: React.FC = () => {
       title,
       timeLimit: timeInSeconds,
       timeRemaining: timeInSeconds,
+      additionalTime: 0,
       status: "pending",
       active: false,
       startTime: null,
@@ -200,8 +201,9 @@ const TaskTimerApp: React.FC = () => {
     setTasks(
       tasks.map((task) => {
         if (task.id === taskId) {
-          const completionTime = task.timeLimit - task.timeRemaining;
-          const success = task.timeRemaining > 0;
+          const completionTime =
+            task.timeLimit - task.timeRemaining + task.additionalTime;
+          const success = task.status === "completed";
 
           const taskData = taskHistory[task.title] || {
             completionTimes: [],
@@ -210,42 +212,32 @@ const TaskTimerApp: React.FC = () => {
             failedAttempts: 0,
           };
 
-          if (success) {
-            const newCompletionTimes = [
-              ...taskData.completionTimes,
-              completionTime,
-            ];
-            const newAverage =
-              newCompletionTimes.reduce((a, b) => a + b, 0) /
-              newCompletionTimes.length;
+          const newCompletionTimes = [
+            ...taskData.completionTimes,
+            completionTime,
+          ];
+          const newAverage =
+            newCompletionTimes.reduce((a, b) => a + b, 0) /
+            newCompletionTimes.length;
 
-            setTaskHistory((prev) => ({
-              ...prev,
-              [task.title]: {
-                ...taskData,
-                completionTimes: newCompletionTimes,
-                averageTime: newAverage,
-                completionCount: taskData.completionCount + 1,
-              },
-            }));
+          setTaskHistory((prev) => ({
+            ...prev,
+            [task.title]: {
+              ...taskData,
+              completionTimes: newCompletionTimes,
+              averageTime: newAverage,
+              completionCount: taskData.completionCount + 1,
+            },
+          }));
 
-            const isFirstCompletion = taskData.completionCount === 0;
-            const pointsEarned = calculatePoints(
-              completionTime,
-              taskData.averageTime,
-              isFirstCompletion
-            );
+          const isFirstCompletion = taskData.completionCount === 0;
+          const pointsEarned = calculatePoints(
+            completionTime,
+            taskData.averageTime,
+            isFirstCompletion
+          );
 
-            setScore((prev) => prev + pointsEarned);
-          } else {
-            setTaskHistory((prev) => ({
-              ...prev,
-              [task.title]: {
-                ...taskData,
-                failedAttempts: (taskData.failedAttempts || 0) + 1,
-              },
-            }));
-          }
+          setScore((prev) => prev + pointsEarned);
 
           return {
             ...task,
@@ -277,6 +269,7 @@ const TaskTimerApp: React.FC = () => {
       title: failedTask.title,
       timeLimit: failedTask.timeLimit * 2,
       timeRemaining: failedTask.timeLimit * 2,
+      additionalTime: 0, // whole function to be removed
       status: "pending",
       active: false,
       startTime: null,
@@ -293,24 +286,37 @@ const TaskTimerApp: React.FC = () => {
 
   // Timer effect for active tasks
   useEffect(() => {
+    console.log("Checking");
     const interval = setInterval(() => {
       setTasks((prevTasks) =>
         prevTasks.map((task) => {
-          if (task.active && task.status === "pending") {
-            const now = Date.now();
-            const startTime = task.startTime || now; // Add startTime if not present
-            const elapsedSeconds = Math.floor((now - startTime) / 1000);
-            const newTimeRemaining = task.timeLimit - elapsedSeconds;
+          // if (task.active && task.status === "pending") {
+          if (task.active) {
+            if (task.status === "pending") {
+              const now = Date.now();
+              const startTime = task.startTime || now; // Add startTime if not present
+              const elapsedSeconds = Math.floor((now - startTime) / 1000);
+              const newTimeRemaining = task.timeLimit - elapsedSeconds;
+              if (newTimeRemaining <= 0) {
+                // Flip the switch to fail
+                return {
+                  ...task,
+                  timeRemaining: 0,
+                  // active: false,
+                  status: "failed",
+                };
+              }
+              return { ...task, timeRemaining: newTimeRemaining };
+            } else if (task.status === "failed") {
+              const now = Date.now();
+              const startTime = task.startTime || now; // Add startTime if not present
+              const elapsedSeconds = Math.floor((now - startTime) / 1000);
+              const additionalTime = elapsedSeconds - task.timeLimit;
+              // DEBUG
+              // console.log("Additional time for ", task.title, " is ", task.additionalTime);
 
-            if (newTimeRemaining <= 0) {
-              return {
-                ...task,
-                timeRemaining: 0,
-                active: false,
-                status: "failed",
-              };
+              return { ...task, additionalTime: additionalTime };
             }
-            return { ...task, timeRemaining: newTimeRemaining };
           }
           return task;
         })
@@ -319,29 +325,6 @@ const TaskTimerApp: React.FC = () => {
 
     return () => clearInterval(interval);
   }, []);
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setTasks((prevTasks) =>
-  //       prevTasks.map((task) => {
-  //         if (task.active && task.status === "pending") {
-  //           const newTimeRemaining = task.timeRemaining - 1;
-  //           if (newTimeRemaining <= 0) {
-  //             return {
-  //               ...task,
-  //               timeRemaining: 0,
-  //               active: false,
-  //               status: "failed",
-  //             };
-  //           }
-  //           return { ...task, timeRemaining: newTimeRemaining };
-  //         }
-  //         return task;
-  //       })
-  //     );
-  //   }, 1000);
-
-  //   return () => clearInterval(interval);
-  // }, []);
 
   return (
     <>

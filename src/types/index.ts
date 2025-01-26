@@ -4,11 +4,12 @@ export interface Task {
     title: string;
     timeLimit: number;
     timeRemaining: number;
+    additionalTime: number; // New guy
     status: "pending" | "completed" | "failed";
     active: boolean;
     startTime: number | null;
     date: string;
-    hasBeenRescheduled?: boolean;
+    hasBeenRescheduled?: boolean; // Marked for deletion
   }
   
   export interface TaskHistory {
