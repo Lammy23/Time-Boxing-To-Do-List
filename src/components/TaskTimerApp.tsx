@@ -203,7 +203,7 @@ const TaskTimerApp: React.FC = () => {
         if (task.id === taskId) {
           const completionTime =
             task.timeLimit - task.timeRemaining + task.additionalTime;
-          const success = task.status === "completed";
+          const success = task.timeRemaining > 0;
 
           const taskData = taskHistory[task.title] || {
             completionTimes: [],
