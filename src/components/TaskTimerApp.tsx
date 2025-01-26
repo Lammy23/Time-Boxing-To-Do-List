@@ -27,6 +27,11 @@ const TaskTimerApp: React.FC = () => {
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
   const [showHistory, setShowHistory] = useState(false);
 
+
+  // #TODO: Potential optimization is when creating a task to save the index of the task to a new list 
+  // We can use this list_of_indexes to increment the timer
+  // This will save us from iterating over the entire list of tasks to find the active task
+
   // Load data from localStorage on component mount
   useEffect(() => {
     const loadedTaskHistory = JSON.parse(
