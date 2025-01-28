@@ -9,7 +9,6 @@ export interface Task {
     active: boolean;
     startTime: number | null;
     date: string;
-    hasBeenRescheduled?: boolean; // Marked for deletion
   }
   
   export interface TaskHistory {
@@ -37,6 +36,5 @@ export interface Task {
   export interface TaskActions {
     startTask: (taskId: number) => void;
     completeTask: (taskId: number) => void;
-    rescheduleTask: (taskId: number) => void;
     deleteTask?: (taskId: number) => void;
   }

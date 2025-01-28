@@ -27,8 +27,7 @@ const TaskTimerApp: React.FC = () => {
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
   const [showHistory, setShowHistory] = useState(false);
 
-
-  // #TODO: Potential optimization is when creating a task to save the index of the task to a new list 
+  // #TODO: Potential optimization is when creating a task to save the index of the task to a new list
   // We can use this list_of_indexes to increment the timer
   // This will save us from iterating over the entire list of tasks to find the active task
 
@@ -236,11 +235,13 @@ const TaskTimerApp: React.FC = () => {
           }));
 
           const isFirstCompletion = taskData.completionCount === 0;
-          const pointsEarned = success ? calculatePoints(
-            completionTime,
-            taskData.averageTime,
-            isFirstCompletion
-          ) : 0;
+          const pointsEarned = success
+            ? calculatePoints(
+                completionTime,
+                taskData.averageTime,
+                isFirstCompletion
+              )
+            : 0;
 
           setScore((prev) => prev + pointsEarned);
 
@@ -256,33 +257,6 @@ const TaskTimerApp: React.FC = () => {
     );
     setCompleteDialogOpen(false);
     setSelectedTaskId(null);
-  };
-
-  const rescheduleTask = (taskId: number) => {
-    const failedTask = tasks.find((task) => task.id === taskId);
-    if (!failedTask) return;
-
-    // Mark the original task as rescheduled
-    setTasks((prev) =>
-      prev.map((task) =>
-        task.id === taskId ? { ...task, hasBeenRescheduled: true } : task
-      )
-    );
-
-    const newTask: Task = {
-      id: Date.now(),
-      title: failedTask.title,
-      timeLimit: failedTask.timeLimit * 2,
-      timeRemaining: failedTask.timeLimit * 2,
-      additionalTime: 0, // whole function to be removed
-      status: "pending",
-      active: false,
-      startTime: null,
-      date: formatDate(Date.now(), localTz),
-      hasBeenRescheduled: false,
-    };
-
-    setTasks((prev) => [...prev, newTask]);
   };
 
   const deleteTask = (taskId: number) => {
@@ -372,7 +346,6 @@ const TaskTimerApp: React.FC = () => {
                 actions={{
                   startTask,
                   completeTask: initiateCompleteTask,
-                  rescheduleTask,
                   deleteTask,
                 }}
               />
