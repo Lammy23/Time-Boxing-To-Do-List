@@ -49,6 +49,20 @@ const TaskInputForm: React.FC<TaskInputFormProps> = ({
     setShowSuggestions(false);
   };
 
+  // If user clicks outside the suggestions, hide them
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (
+        e.target instanceof HTMLElement &&
+        !e.target.closest('.relative')
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, []);
+
   const handleAddTask = () => {
     if (newTask && (hours || minutes || seconds)) {
       const timeInSeconds =

@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:cast": "next dev -H 0.0.0.0",
     "dev:open": "next dev -p 4000 & open http://localhost:4000",
     "build": "next build",
     "start": "next start",
@@ -21,6 +22,7 @@
     "next": "15.0.3",
     "react": "19.0.0-rc-66855b96-20241106",
     "react-dom": "19.0.0-rc-66855b96-20241106",
+    "recharts": "^2.15.0",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7"
   },

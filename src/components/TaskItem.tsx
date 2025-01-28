@@ -16,7 +16,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
   averageTime, 
   actions 
 }) => {
-  const { startTask, completeTask, rescheduleTask, deleteTask } = actions;
+  const { startTask, completeTask, deleteTask } = actions;
 
   const getStatusStyles = () => {
     switch (task.status) {
@@ -40,9 +40,19 @@ const TaskItem: React.FC<TaskItemProps> = ({
     }
   };
 
-  const handleReschedule = (taskId: number) => {
-    rescheduleTask(taskId);
-  };
+  const renderTimings = () => {
+    if (task.status === "pending" || task.status === "completed") {
+      return (
+        `Time remaining: ${formatTime(task.timeRemaining)}`
+      )
+    }
+    else if (task.status === "failed")
+    {
+      return (
+        `Additional time used: ${formatTime(task.additionalTime)}`
+      )
+    }
+  }
 
   const renderActionButtons = () => {
     if (task.status === 'pending' && !task.active) {
@@ -67,24 +77,13 @@ const TaskItem: React.FC<TaskItemProps> = ({
       );
     }
 
-    if (task.status === 'pending' && task.active) {
+    else if (task.active) {
       return (
         <Button 
           onClick={() => completeTask(task.id)} 
           className="flex items-center gap-2"
         >
           <CheckCircle className="w-4 h-4" /> Complete
-        </Button>
-      );
-    }
-
-    if (task.status === 'failed' && !task.hasBeenRescheduled) {
-      return (
-        <Button 
-          onClick={() => handleReschedule(task.id)} 
-          className="flex items-center gap-2"
-        >
-          <Timer className="w-4 h-4" /> Reschedule (2x)
         </Button>
       );
     }
@@ -100,7 +99,8 @@ const TaskItem: React.FC<TaskItemProps> = ({
           {renderStatusIcon()}
         </div>
         <div className="text-sm text-gray-500">
-          Time remaining: {formatTime(task.timeRemaining)}
+          {/* Time remaining: {formatTime(task.timeRemaining)} */}
+          {renderTimings()}
           {averageTime && (
             <span className="ml-2">
               (Avg: {formatTime(averageTime)})
