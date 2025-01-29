@@ -4,8 +4,8 @@ export interface Task {
     title: string;
     timeLimit: number;
     timeRemaining: number;
-    additionalTime: number; // New guy
-    status: "pending" | "completed" | "failed";
+    additionalTime: number; // Change to 'timeLimit' then 'timeUsed' instead of timeRemaining and additionalTime
+    status: "pending" | "running" | "completed" | "failed"; // ('End task' button when failed, 'Complete task' button when running)
     active: boolean;
     startTime: number | null;
     date: string;

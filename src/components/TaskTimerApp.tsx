@@ -31,7 +31,7 @@ const TaskTimerApp: React.FC = () => {
   // We can use this list_of_indexes to increment the timer
   // This will save us from iterating over the entire list of tasks to find the active task
 
-  // Load data from localStorage on component mount
+  // Load data from API on component mount
   useEffect(() => {
     const loadedTaskHistory = JSON.parse(
       localStorage.getItem("taskHistory") || "{}"
@@ -39,7 +39,6 @@ const TaskTimerApp: React.FC = () => {
     const loadedDailyStats = JSON.parse(
       localStorage.getItem("dailyStats") || "[]"
     );
-    // const today = new Date().toISOString().split("T")[0];
 
     const today = formatDate(Date.now(), localTz);
 
@@ -60,7 +59,7 @@ const TaskTimerApp: React.FC = () => {
     }
   }, []);
 
-  // Save data to localStorage whenever it changes
+  // Save data to API whenever it changes
   useEffect(() => {
     localStorage.setItem("taskHistory", JSON.stringify(taskHistory));
     localStorage.setItem("dailyStats", JSON.stringify(dailyStats));
