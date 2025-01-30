@@ -1,48 +1,70 @@
 // components/TaskInputForm.tsx
-import React, { useState, useEffect } from 'react';
-import { PlusCircle } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Suggestion, TaskHistory } from '../types';
-import { formatTime } from '../utils/formatTime';
+import React, { useState, useEffect, useContext } from "react";
+import { PlusCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { formatTime } from "../utils/formatTime";
+import { addTask, getTasks, getTasksByKeyword } from "@/service/apiService";
+import Task, { TaskStatus } from "@/classes/Task";
+import { formatDate } from "date-fns";
+import { localTz } from "@/utils/formatDate";
+import { TaskListContext } from "@/contexts/TaskListContext";
 
-interface TaskInputFormProps {
-  taskHistory: TaskHistory;
-  onAddTask: (title: string, timeInSeconds: number) => void;
-}
+// interface Suggestion {
+//   title: string;
+//   averageTime: number;
+//   completionCount: number;
+// }
 
-const TaskInputForm: React.FC<TaskInputFormProps> = ({
-  taskHistory,
-  onAddTask,
-}) => {
-  const [newTask, setNewTask] = useState('');
-  const [hours, setHours] = useState('');
-  const [minutes, setMinutes] = useState('');
-  const [seconds, setSeconds] = useState('');
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
+const TaskInputForm: React.FC = () => {
+  const [taskSuggestions, setTaskSuggestions] = useState<Task[]>([]);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [hours, setHours] = useState("");
+  const [minutes, setMinutes] = useState("");
+  const [seconds, setSeconds] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false); // Show suggestions when user types
+
+  const { refreshTaskList } = useContext(TaskListContext);
+
+  // Once the user starts typing (once newTaskTitle.length changes), fetch the updated
+  // tasks from the api every 5 seconds 10 times, then stop if no activity
+  // TODO: Possible optimization -> shift pagination and filtering to backend to reduce data transfer
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    let count = 0;
+
+    if (newTaskTitle.length > 1) {
+      interval = setInterval(() => {
+        getTasks().then((tasks: Task[]) => {
+          setTaskSuggestions(tasks);
+        });
+        count++;
+        if (count >= 10) {
+          clearInterval(interval);
+        }
+      }, 5000);
+    }
+
+    return () => clearInterval(interval);
+  }, [newTaskTitle]);
 
   // Update suggestions as user types
   useEffect(() => {
-    if (newTask.length > 1) {
-      const matches = Object.keys(taskHistory)
-        .filter((task) => task.toLowerCase().includes(newTask.toLowerCase()))
-        .map((task) => ({
-          title: task,
-          averageTime: taskHistory[task].averageTime,
-          completionCount: taskHistory[task].completionCount,
-        }));
-      setSuggestions(matches);
-      setShowSuggestions(matches.length > 0);
+    if (newTaskTitle.length > 1) {
+      // Set suggestions using a search
+      getTasksByKeyword(newTaskTitle).then((tasks: Task[]) => {
+        setTaskSuggestions(tasks);
+        setShowSuggestions(tasks.length > 0);
+      });
     } else {
-      setSuggestions([]);
+      setTaskSuggestions([]);
       setShowSuggestions(false);
     }
-  }, [newTask, taskHistory]);
+  }, [newTaskTitle, taskSuggestions]);
 
-  const selectSuggestion = (suggestion: Suggestion) => {
-    setNewTask(suggestion.title);
-    const avgTimeInSeconds = suggestion.averageTime;
+  const selectSuggestion = (taskSuggestion: Task) => {
+    setNewTaskTitle(taskSuggestion.title);
+    const avgTimeInSeconds = taskSuggestion.getAverageTime();
     setHours(Math.floor(avgTimeInSeconds / 3600).toString());
     setMinutes(Math.floor((avgTimeInSeconds % 3600) / 60).toString());
     setSeconds((avgTimeInSeconds % 60).toString());
@@ -52,30 +74,43 @@ const TaskInputForm: React.FC<TaskInputFormProps> = ({
   // If user clicks outside the suggestions, hide them
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
-      if (
-        e.target instanceof HTMLElement &&
-        !e.target.closest('.relative')
-      ) {
+      if (e.target instanceof HTMLElement && !e.target.closest(".relative")) {
         setShowSuggestions(false);
       }
     };
-    document.addEventListener('click', handleClick);
-    return () => document.removeEventListener('click', handleClick);
+    document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
   }, []);
 
   const handleAddTask = () => {
-    if (newTask && (hours || minutes || seconds)) {
+    if (newTaskTitle && (hours || minutes || seconds)) {
       const timeInSeconds =
-        parseInt(hours || '0') * 3600 +
-        parseInt(minutes || '0') * 60 +
-        parseInt(seconds || '0');
+        parseInt(hours || "0") * 3600 +
+        parseInt(minutes || "0") * 60 +
+        parseInt(seconds || "0");
 
-      onAddTask(newTask, timeInSeconds);
-      setNewTask('');
-      setHours('');
-      setMinutes('');
-      setSeconds('');
+      addTaskAndRefreshTaskList(newTaskTitle, timeInSeconds);
+      setNewTaskTitle("");
+      setHours("");
+      setMinutes("");
+      setSeconds("");
     }
+  };
+
+  const addTaskAndRefreshTaskList = (title: string, timeInSeconds: number) => {
+    const newTask: Task = new Task(
+      Date.now(),
+      title,
+      timeInSeconds,
+      0,
+      TaskStatus.Pending,
+      null,
+      formatDate(Date.now(), localTz),
+      []
+    );
+
+    addTask(newTask); // Add task to backend
+    refreshTaskList(); // Refresh task list
   };
 
   return (
@@ -83,13 +118,13 @@ const TaskInputForm: React.FC<TaskInputFormProps> = ({
       <div className="relative">
         <Input
           placeholder="New task"
-          value={newTask}
-          onChange={(e) => setNewTask(e.target.value)}
+          value={newTaskTitle}
+          onChange={(e) => setNewTaskTitle(e.target.value)}
           className="w-full"
         />
         {showSuggestions && (
           <div className="absolute z-10 w-full bg-white border rounded-md shadow-lg mt-1">
-            {suggestions.map((suggestion, index) => (
+            {taskSuggestions.map((suggestion, index) => (
               <div
                 key={index}
                 className="p-2 hover:bg-gray-100 cursor-pointer"
@@ -97,8 +132,8 @@ const TaskInputForm: React.FC<TaskInputFormProps> = ({
               >
                 <div>{suggestion.title}</div>
                 <div className="text-sm text-gray-500">
-                  Avg: {formatTime(suggestion.averageTime)} | Completed:{' '}
-                  {suggestion.completionCount} times
+                  Avg: {formatTime(suggestion.getAverageTime())} | Completed:{" "}
+                  {suggestion.getCompletionCount()} times
                 </div>
               </div>
             ))}

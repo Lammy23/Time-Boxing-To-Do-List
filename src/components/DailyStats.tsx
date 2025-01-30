@@ -1,19 +1,29 @@
 // components/DailyStats.tsx
-import React from 'react';
-import { DailyStat } from '../types';
+import React, { useEffect, useState } from 'react';
+import DailyStat from '@/classes/DailyStat';
+import { getDailyStats } from '@/service/apiService';
 
-interface DailyStatsProps {
-  stats: DailyStat[];
-}
+// interface DailyStatsProps {
+//   stats: DailyStat[];
+// };
 
-const DailyStats: React.FC<DailyStatsProps> = ({ stats }) => {
+const DailyStats: React.FC = () => {
+  const [stats, setStats] = useState<DailyStat[]>([]);
+
+  // Load stats upon component mount
+  useEffect(() => {
+    getDailyStats().then((value: DailyStat[]) => {
+      setStats(value);
+    });
+  }, []);
+
   if (stats.length === 0) return null;
 
   return (
     <div className="mt-8">
       <h3 className="text-lg font-semibold mb-2">History</h3>
       <div className="space-y-2">
-        {stats.slice(-7).map((stat, index) => (
+        {stats.slice(-7).map((stat, index) => ( // TODO: Code smell (ignores stats past 7 days)
           <div
             key={index}
             className="flex justify-between items-center p-2 bg-gray-50 rounded"
