@@ -334,7 +334,6 @@ const TaskTimerApp: React.FC = () => {
   return (
     <>
       <CompletionRateDisplay rate={completionRate} />
-
       {!showHistory ? (
         <Card className="w-full max-w-2xl mx-auto">
           <CardHeader>
