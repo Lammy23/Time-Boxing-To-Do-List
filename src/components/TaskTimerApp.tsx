@@ -14,6 +14,7 @@ import CompletionRateDisplay from "@/components/CompletionRateDisplay";
 import TaskHistoryPage from "@/components/TaskHistoryPage";
 import { Task, TaskHistory, DailyStat } from "../types/index";
 import { formatDate, localTz } from "@/utils/formatDate";
+import { getTasksTodayOrOverdue } from "@/services/todoistApi";
 
 const TaskTimerApp: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -34,6 +35,7 @@ const TaskTimerApp: React.FC = () => {
 
   // Load data from localStorage on component mount
   useEffect(() => {
+    getTasksTodayOrOverdue();
     const loadedTaskHistory = JSON.parse(
       localStorage.getItem("taskHistory") || "{}"
     );
